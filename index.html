@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文本转SRT字幕工具</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #007BFF;
+            --neutral-color: #6C757D;
+            --light-bg: #F8F9FA;
+            --border-color: #DEE2E6;
+            --text-color: #333333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #FFFFFF;
+            padding: 20px;
+            min-height: 100vh;
+            color: var(--text-color);
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .module {
+            background: var(--light-bg);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .module:hover {
+            box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: var(--text-color);
+            margin-bottom: 25px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        h3 {
+            color: var(--text-color);
+            margin-bottom: 18px;
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #666666;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 16px;
+            height: 50px;
+            text-align: right;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+
+        .form-hint {
+            color: #999;
+            font-size: 13px;
+            margin-top: 5px;
+            line-height: 1.4;
+        }
+
+        .textarea-container {
+            position: relative;
+        }
+
+        textarea, #result {
+            width: 100%;
+            height: 280px; /* 统一高度 */
+            padding: 12px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 15px;
+            resize: vertical;
+            margin-bottom: 15px;
+            transition: border-color 0.2s ease;
+            background-color: #FFFFFF;
+            font-family: 'Consolas', monospace;
+            line-height: 1.5;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+
+        .char-count {
+            position: absolute;
+            bottom: 25px;
+            right: 25px;
+            color: #999;
+            font-size: 12px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 50px; /* 统一按钮高度 */
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        #generate-btn {
+            background-color: var(--primary-color);
+            color: white;
+            flex: 1;
+        }
+
+        #generate-btn:hover {
+            background-color: #43A047;
+        }
+
+        #clear-btn {
+            background-color: var(--neutral-color);
+            color: white;
+            flex: 1;
+        }
+
+        #clear-btn:hover {
+            background-color: #5A6268;
+        }
+
+        #result {
+            white-space: pre-wrap;
+            overflow-y: auto;
+            margin-top: 0; /* 与textarea对齐 */
+        }
+
+        .result-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .download-btn {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .download-btn:hover {
+            background-color: #0069D9;
+        }
+
+        /* 弹窗样式 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        /* 响应式布局 */
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr 1fr;
+            }
+            .result-module {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>文本转SRT字幕工具</h1>
+    <div class="container">
+        <div class="module">
+            <h3>参数设置</h3>
+            <div class="form-group">
+                <label>单字显示时长（秒）</label>
+                <input type="number" step="0.01" id="wordDuration" value="0.2" min="0.1" max="5.0">
+                <div class="form-hint">控制每个字符的显示时间，默认0.2秒/字</div>
+            </div>
+            <div class="form-group">
+                <label>句子间隔时间（秒）</label>
+                <input type="number" step="0.1" id="interval" value="1.0" min="0.5" max="5.0">
+                <div class="form-hint">设置句子之间的间隔时间，默认1.0秒</div>
+            </div>
+        </div>
+
+        <div class="module">
+            <h3>输入文本</h3>
+            <div class="textarea-container">
+                <textarea id="textInput" placeholder="请粘贴或输入字幕内容" oninput="updateCharCount()"></textarea>
+                <div class="char-count" id="charCount">0 字符</div>
+            </div>
+            <div class="btn-group">
+                <button id="clear-btn" onclick="showToast('已清空文本')">清空文本</button>
+                <button id="generate-btn" onclick="showToast('正在生成SRT字幕...')">生成SRT字幕</button>
+            </div>
+        </div>
+
+        <div class="module result-module">
+            <h3>生成结果</h3>
+            <pre id="result" placeholder="生成的SRT字幕将显示在这里"></pre>
+            <div class="result-actions">
+                <button class="download-btn" id="downloadBtn" onclick="showToast('文件已下载')">保存到本地</button>
+                <button class="download-btn" id="copyBtn" onclick="showToast('已复制到剪贴板')">复制结果</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 弹窗元素 -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // 更新字符计数
+        function updateCharCount() {
+            const textarea = document.getElementById('textInput');
+            const countElement = document.getElementById('charCount');
+            const count = textarea.value.length;
+            countElement.textContent = `${count} 字符`;
+        }
+
+        // 显示弹窗
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // 时间格式化函数
+        function formatTime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            seconds %= 3600;
+            const minutes = Math.floor(seconds / 60);
+            seconds = Math.floor(seconds % 60 * 1000) / 1000; // 保留三位小数
+            const ms = Math.round((seconds - Math.floor(seconds)) * 1000);
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(Math.floor(seconds)).padStart(2, '0')},${String(ms).padStart(3, '0')}`;
+        }
+
+        // 生成SRT函数
+        function generateSRT() {
+            const text = document.getElementById('textInput').value.trim();
+            if (!text) return alert('请输入字幕内容');
+            
+            const wordDuration = parseFloat(document.getElementById('wordDuration').value);
+            const interval = parseFloat(document.getElementById('interval').value);
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            
+            let srt = '';
+            let currentTime = 0;
+            
+            lines.forEach((line, index) => {
+                const wordCount = line.trim().length;
+                const lineDuration = wordCount * wordDuration;
+                const start = currentTime;
+                const end = currentTime + lineDuration;
+                
+                srt += `${index + 1}\n`;
+                srt += `${formatTime(start)} --> ${formatTime(end)}\n`;
+                srt += `${line.trim()}\n\n`;
+                
+                currentTime = end + interval;
+            });
+            
+            document.getElementById('result').textContent = srt;
+        }
+
+        // 清空文本
+        document.getElementById('clear-btn').addEventListener('click', () => {
+            document.getElementById('textInput').value = '';
+            document.getElementById('result').textContent = '';
+            updateCharCount(); // 清空后更新计数
+        });
+
+        // 生成按钮事件
+        document.getElementById('generate-btn').addEventListener('click', generateSRT);
+
+        // 复制结果
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            const result = document.getElementById('result');
+            const range = document.createRange();
+            range.selectNode(result);
+            window.getSelection().addRange(range);
+            try {
+                const successful = document.execCommand('copy');
+                if (!successful) showToast('复制失败，请手动复制');
+            } finally {
+                window.getSelection().removeAllRanges();
+            }
+        });
+
+        // 保存文件
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            const srtContent = document.getElementById('result').textContent;
+            if (!srtContent) return alert('请先生成字幕');
+            
+            const blob = new Blob([srtContent], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'subtitles.srt';
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        // 初始化字符计数
+        updateCharCount();
+    </script>
+</body>
+</html>
