@@ -4,322 +4,415 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>文本转SRT字幕工具</title>
-    <style>
-        :root {
-            --primary-color: #4CAF50;
-            --secondary-color: #007BFF;
-            --neutral-color: #6C757D;
-            --light-bg: #F8F9FA;
-            --border-color: #DEE2E6;
-            --text-color: #333333;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', sans-serif;
-        }
-
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: #FFFFFF;
-            padding: 20px;
-            min-height: 100vh;
-            color: var(--text-color);
-        }
-
-        .container {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            max-width: 1200px;
-            width: 100%;
-            margin-top: 20px;
-        }
-
-        .module {
-            background: var(--light-bg);
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            border: 1px solid var(--border-color);
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            height: 600px; /* 增加模块高度 */
-        }
-
-        .module:hover {
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
-        }
-
-        h1 {
-            color: var(--text-color);
-            margin-bottom: 10px;
-            text-align: center;
-            font-size: 28px;
-            font-weight: 600;
-        }
-
-        h3 {
-            color: var(--text-color);
-            margin-bottom: 18px;
-            font-size: 20px;
-            font-weight: 500;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            color: #666666;
-            margin-bottom: 8px;
-            font-size: 15px;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 16px;
-            height: 50px;
-            text-align: right;
-            transition: border-color 0.2s ease;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
-        }
-
-        .form-hint {
-            color: #999;
-            font-size: 13px;
-            margin-top: 5px;
-            line-height: 1.4;
-        }
-
-        .textarea-container {
-            position: relative;
-        }
-
-        textarea,
-        #result {
-            width: 100%;
-            height: 400px; /* 统一高度 */
-            padding: 12px 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 15px;
-            resize: vertical;
-            margin-bottom: 15px;
-            transition: border-color 0.2s ease;
-            background-color: #FFFFFF;
-            font-family: 'Consolas', monospace;
-            line-height: 1.5;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
-        }
-
-        .char-count {
-            position: absolute;
-            bottom: 25px;
-            right: 25px;
-            color: #999;
-            font-size: 12px;
-            background-color: rgba(255, 255, 255, 0.8);
-            padding: 2px 8px;
-            border-radius: 4px;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 15px;
-            margin-top: 15px;
-        }
-
-        button {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 50px; /* 统一按钮高度 */
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        #generate-btn {
-            background-color: var(--primary-color);
-            color: white;
-            flex: 1;
-        }
-
-        #generate-btn:hover {
-            background-color: #43A047;
-        }
-
-        #clear-btn {
-            background-color: var(--neutral-color);
-            color: white;
-            flex: 1;
-        }
-
-        #clear-btn:hover {
-            background-color: #5A6268;
-        }
-
-        #result {
-            white-space: pre-wrap;
-            overflow-y: auto;
-            margin-top: 0; /* 与textarea对齐 */
-        }
-
-        .result-actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 15px;
-        }
-
-        .download-btn {
-            background-color: var(--secondary-color);
-            color: white;
-        }
-
-        .download-btn:hover {
-            background-color: #0069D9;
-        }
-
-        /* 弹窗样式 */
-        .toast {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 12px 20px;
-            background-color: rgba(0, 0, 0, 0.8);
-            color: white;
-            border-radius: 6px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            z-index: 100;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .toast.show {
-            opacity: 1;
-        }
-
-        /* 响应式布局 */
-        @media (max-width: 1024px) {
-            .container {
-                grid-template-columns: 1fr 1fr;
+    <title>Excel转SRT字幕工具</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
             }
-
-            .result-module {
-                grid-column: 1 / -1;
+            .module-shadow {
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             }
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                grid-template-columns: 1fr;
+            .btn-hover {
+                transition: all 0.3s ease;
+            }
+            .btn-hover:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+            }
+            .input-focus {
+                transition: all 0.2s ease;
+            }
+            .input-focus:focus {
+                box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
             }
         }
     </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4CAF50',
+                        secondary: '#007BFF',
+                        neutral: '#6C757D',
+                        light: '#F8F9FA',
+                        dark: '#333333',
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
 </head>
 
-<body>
-    <h1>文本转SRT字幕工具</h1>
-    <div class="container">
-        <div class="module">
-            <h3>参数设置</h3>
-            <div class="form-group">
-                <label>单字显示时长（秒）</label>
-                <input type="number" step="0.01" id="wordDuration" value="0.20" min="0.10" max="1.00"
-                    oninput="updateSlider('wordDuration', 'wordDurationSlider')">
-                <input type="range" id="wordDurationSlider" min="0.10" max="1.00" step="0.01" value="0.20"
-                    oninput="updateInput('wordDuration', 'wordDurationSlider')">
-                <div class="form-hint">控制每个字符的显示时间，默认0.20秒</div> <!-- 修改了提示文字 -->
+<body class="bg-gray-50 min-h-screen font-inter">
+    <div class="container mx-auto px-4 py-8 max-w-6xl h-full">
+        <h1 class="text-[clamp(1.75rem,4vw,2.5rem)] font-bold text-center text-dark mb-8">Excel转SRT字幕工具</h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 h-full">
+            <!-- 参数设置模块 -->
+            <div class="bg-white rounded-xl p-6 module-shadow border border-gray-100 transition-all duration-300 hover:module-shadow/70 h-full flex flex-col">
+                <h3 class="text-xl font-semibold text-dark mb-4 flex items-center">
+                    <i class="fa fa-sliders text-primary mr-2"></i>参数设置
+                </h3>
+                <div class="space-y-6 flex-grow">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">单字显示时长（秒）</label>
+                        <div class="flex items-center space-x-4">
+                            <input type="number" step="0.01" id="wordDuration" value="0.20" min="0.10" max="1.00"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus focus:border-primary focus:outline-none">
+                            <input type="range" id="wordDurationSlider" min="0.10" max="1.00" step="0.01" value="0.20"
+                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">控制每个字符的显示时间，默认0.20秒</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">句子间隔时间（秒）</label>
+                        <div class="flex items-center space-x-4">
+                            <input type="number" step="0.01" id="interval" value="1.00" min="0.5" max="5.0"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus focus:border-primary focus:outline-none">
+                            <input type="range" id="intervalSlider" min="0.5" max="5.0" step="0.01" value="1.00"
+                                class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">设置句子之间的间隔时间，默认1.00秒</p>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label>句子间隔时间（秒）</label>
-                <input type="number" step="0.01" id="interval" value="1.00" min="0.5" max="5.0"
-                    oninput="updateSlider('interval', 'intervalSlider')">
-                <input type="range" id="intervalSlider" min="0.5" max="5.0" step="0.01" value="1.00"
-                    oninput="updateInput('interval', 'intervalSlider')">
-                <div class="form-hint">设置句子之间的间隔时间，默认1.00秒</div>
+
+            <!-- Excel上传模块 -->
+            <div class="bg-white rounded-xl p-6 module-shadow border border-gray-100 transition-all duration-300 hover:module-shadow/70 h-full flex flex-col">
+                <h3 class="text-xl font-semibold text-dark mb-4 flex items-center">
+                    <i class="fa fa-file-excel-o text-primary mr-2"></i>上传Excel文件
+                </h3>
+
+                <div class="space-y-6 flex-grow">
+                    <div id="dropZone" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-primary transition-colors duration-300">
+                        <i class="fa fa-cloud-upload text-4xl text-gray-400 mb-3"></i>
+                        <p class="text-gray-600 mb-2">拖放Excel文件到此处，或</p>
+                        <button id="selectFileBtn" class="inline-flex items-center px-4 py-2 border border-primary text-primary rounded-lg btn-hover">
+                            <i class="fa fa-folder-open-o mr-2"></i>选择文件
+                        </button>
+                        <input type="file" id="fileInput" accept=".xlsx,.xls" class="hidden">
+                        <p class="text-xs text-gray-500 mt-3">支持 .xlsx 和 .xls 格式，第一列为标题，第二列为文案</p>
+                    </div>
+
+                    <div id="fileInfo" class="hidden bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <h4 class="font-medium text-gray-800 mb-2">已选择文件: <span id="fileName" class="text-primary"></span></h4>
+                        <div class="flex space-x-3 mt-3">
+                            <button id="processBtn" class="flex-1 bg-primary text-white rounded-lg px-4 py-2 btn-hover">
+                                <i class="fa fa-cog mr-2"></i>处理文件
+                            </button>
+                            <button id="changeFileBtn" class="flex-1 bg-gray-200 text-gray-700 rounded-lg px-4 py-2 btn-hover">
+                                <i class="fa fa-refresh mr-2"></i>更换文件
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="loadingIndicator" class="hidden text-center py-4">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                        <p class="text-gray-600 mt-2">正在处理文件...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 文本输入模块 -->
+            <div class="bg-white rounded-xl p-6 module-shadow border border-gray-100 transition-all duration-300 hover:module-shadow/70 h-full flex flex-col">
+                <h3 class="text-xl font-semibold text-dark mb-4 flex items-center">
+                    <i class="fa fa-pencil text-primary mr-2"></i>粘贴文本内容
+                </h3>
+
+                <div class="flex flex-col flex-grow">
+                    <textarea id="textInput" class="flex-grow w-full p-4 border border-gray-300 rounded-lg input-focus focus:border-primary focus:outline-none resize-none"
+                        placeholder="标题1	文案1&#10;标题2	文案2&#10;标题3	文案3"></textarea>
+                    <div class="flex space-x-3 mt-6">
+                        <button id="clearTextBtn" class="flex-1 bg-gray-200 text-gray-700 rounded-lg px-4 py-2 btn-hover">
+                            <i class="fa fa-eraser mr-2"></i>清空
+                        </button>
+                        <button id="processTextBtn" class="flex-1 bg-primary text-white rounded-lg px-4 py-2 btn-hover">
+                            <i class="fa fa-cog mr-2"></i>处理文本
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="module">
-            <h3>输入文本</h3>
-            <div class="textarea-container">
-                <textarea id="textInput" placeholder="请粘贴或输入字幕内容" oninput="updateCharCount()"></textarea>
-                <div class="char-count" id="charCount">0 字符</div>
-            </div>
-            <div class="btn-group">
-                <button id="clear-btn" onclick="showToast('已清空文本')">清空文本</button>
-                <button id="generate-btn" onclick="showToast('正在生成字幕...')">生成字幕</button>
+        <!-- 结果预览模块 -->
+        <div class="md:col-span-3 bg-white rounded-xl p-6 module-shadow border border-gray-100 transition-all duration-300 hover:module-shadow/70 mt-6">
+            <h3 class="text-xl font-semibold text-dark mb-4 flex items-center">
+                <i class="fa fa-file-text-o text-primary mr-2"></i>生成结果
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="font-medium text-gray-800">标题SRT</h4>
+                        <div class="flex space-x-2">
+                            <button id="copyTitleBtn" class="text-sm px-3 py-1 bg-secondary/10 text-secondary rounded-lg btn-hover">
+                                <i class="fa fa-copy mr-1"></i>复制
+                            </button>
+                            <button id="downloadTitleBtn" class="text-sm px-3 py-1 bg-secondary text-white rounded-lg btn-hover">
+                                <i class="fa fa-download mr-1"></i>下载
+                            </button>
+                        </div>
+                    </div>
+                    <pre id="titleResult" class="bg-gray-50 border border-gray-200 rounded-lg p-4 h-80 overflow-auto text-sm font-mono"></pre>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="font-medium text-gray-800">文案SRT</h4>
+                        <div class="flex space-x-2">
+                            <button id="copyContentBtn" class="text-sm px-3 py-1 bg-secondary/10 text-secondary rounded-lg btn-hover">
+                                <i class="fa fa-copy mr-1"></i>复制
+                            </button>
+                            <button id="downloadContentBtn" class="text-sm px-3 py-1 bg-secondary text-white rounded-lg btn-hover">
+                                <i class="fa fa-download mr-1"></i>下载
+                            </button>
+                        </div>
+                    </div>
+                    <pre id="contentResult" class="bg-gray-50 border border-gray-200 rounded-lg p-4 h-80 overflow-auto text-sm font-mono"></pre>
+                </div>
             </div>
         </div>
 
-        <div class="module result-module">
-            <h3>生成结果</h3>
-            <pre id="result" placeholder="生成的SRT字幕将显示在这里"></pre>
-            <div class="result-actions">
-                <button class="download-btn" id="downloadBtn" onclick="showToast('文件已下载')">保存到本地</button>
-                <button class="download-btn" id="copyBtn" onclick="showToast('已复制到剪贴板')">复制结果</button>
-            </div>
-        </div>
+        <!-- 通知提示 -->
+        <div id="toast" class="fixed top-4 right-4 max-w-sm bg-white rounded-lg shadow-lg p-4 transform translate-x-full transition-transform duration-300 z-50 border-l-4 border-primary"></div>
     </div>
 
-    <!-- 弹窗元素 -->
-    <div id="toast" class="toast"></div>
-
     <script>
-        // 更新字符计数
-        function updateCharCount() {
-            const textarea = document.getElementById('textInput');
-            const countElement = document.getElementById('charCount');
-            const count = textarea.value.length;
-            countElement.textContent = `${count} 字符`;
-        }
+        // 全局变量存储当前处理的Excel数据
+        let excelData = null;
 
-        // 显示弹窗
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.classList.add('show');
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function () {
+            // 初始化滑块和输入框的联动
+            document.getElementById('wordDuration').addEventListener('input', function () {
+                document.getElementById('wordDurationSlider').value = this.value;
+            });
 
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 2000);
-        }
+            document.getElementById('wordDurationSlider').addEventListener('input', function () {
+                document.getElementById('wordDuration').value = parseFloat(this.value).toFixed(2);
+            });
+
+            document.getElementById('interval').addEventListener('input', function () {
+                document.getElementById('intervalSlider').value = this.value;
+            });
+
+            document.getElementById('intervalSlider').addEventListener('input', function () {
+                document.getElementById('interval').value = parseFloat(this.value).toFixed(2);
+            });
+
+            // 文件选择按钮点击事件
+            document.getElementById('selectFileBtn').addEventListener('click', function () {
+                document.getElementById('fileInput').click();
+            });
+
+            // 文件选择后处理
+            document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+
+            // 拖放区域事件
+            const dropZone = document.getElementById('dropZone');
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, unhighlight, false);
+            });
+
+            function highlight() {
+                dropZone.classList.add('border-primary');
+                dropZone.classList.add('bg-primary/5');
+            }
+
+            function unhighlight() {
+                dropZone.classList.remove('border-primary');
+                dropZone.classList.remove('bg-primary/5');
+            }
+
+            dropZone.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+
+                if (files.length) {
+                    handleFile(files[0]);
+                }
+            }
+
+            // 处理文件选择
+            function handleFileSelect(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    handleFile(file);
+                }
+            }
+
+            // 处理文件
+            function handleFile(file) {
+                // 检查文件类型
+                const fileType = file.name.split('.').pop().toLowerCase();
+                if (fileType !== 'xlsx' && fileType !== 'xls') {
+                    showToast('请上传Excel文件 (.xlsx 或 .xls)', 'error');
+                    return;
+                }
+
+                // 显示文件信息
+                document.getElementById('fileName').textContent = file.name;
+                document.getElementById('dropZone').classList.add('hidden');
+                document.getElementById('fileInfo').classList.remove('hidden');
+
+                // 存储文件信息
+                excelData = file;
+            }
+
+            // 更换文件按钮
+            document.getElementById('changeFileBtn').addEventListener('click', function () {
+                document.getElementById('fileInput').value = '';
+                document.getElementById('fileInfo').classList.add('hidden');
+                document.getElementById('dropZone').classList.remove('hidden');
+                document.getElementById('titleResult').textContent = '';
+                document.getElementById('contentResult').textContent = '';
+                excelData = null;
+            });
+
+            // 处理文件按钮
+            document.getElementById('processBtn').addEventListener('click', function () {
+                if (!excelData) {
+                    showToast('请先选择Excel文件', 'error');
+                    return;
+                }
+
+                document.getElementById('loadingIndicator').classList.remove('hidden');
+                document.getElementById('fileInfo').classList.add('hidden');
+
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+
+                        // 获取第一个工作表
+                        const firstSheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[firstSheetName];
+
+                        // 转换为JSON
+                        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                        // 检查数据格式
+                        if (jsonData.length < 2) {
+                            throw new Error('Excel文件中至少需要有一行标题和一行内容');
+                        }
+
+                        // 生成SRT
+                        generateSRT(jsonData);
+
+                        document.getElementById('loadingIndicator').classList.add('hidden');
+                        document.getElementById('fileInfo').classList.remove('hidden');
+                        showToast('文件处理成功', 'success');
+                    } catch (error) {
+                        document.getElementById('loadingIndicator').classList.add('hidden');
+                        document.getElementById('fileInfo').classList.remove('hidden');
+                        showToast('处理文件时出错: ' + error.message, 'error');
+                    }
+                };
+
+                reader.onerror = function () {
+                    document.getElementById('loadingIndicator').classList.add('hidden');
+                    document.getElementById('fileInfo').classList.remove('hidden');
+                    showToast('读取文件时出错', 'error');
+                };
+
+                reader.readAsArrayBuffer(excelData);
+            });
+
+            // 清空文本按钮
+            document.getElementById('clearTextBtn').addEventListener('click', function () {
+                document.getElementById('textInput').value = '';
+                showToast('文本已清空', 'info');
+            });
+
+            // 处理文本按钮
+            document.getElementById('processTextBtn').addEventListener('click', function () {
+                const text = document.getElementById('textInput').value.trim();
+                if (!text) {
+                    showToast('请输入文本内容', 'error');
+                    return;
+                }
+
+                try {
+                    // 解析文本，每行按Tab分隔
+                    const lines = text.split('\n');
+                    const jsonData = [];
+
+                    // 添加标题行
+                    jsonData.push(['标题', '文案']);
+
+                    // 解析每一行
+                    for (const line of lines) {
+                        if (!line.trim()) continue;
+
+                        // 按Tab分隔
+                        const parts = line.split('\t');
+
+                        // 确保至少有两部分
+                        if (parts.length < 2) {
+                            showToast('格式错误：每行应包含标题和文案，用Tab分隔', 'error');
+                            return;
+                        }
+
+                        jsonData.push([parts[0], parts[1]]);
+                    }
+
+                    if (jsonData.length < 2) {
+                        showToast('至少需要一行内容', 'error');
+                        return;
+                    }
+
+                    // 生成SRT
+                    generateSRT(jsonData);
+                    showToast('文本处理成功', 'success');
+                } catch (error) {
+                    showToast('处理文本时出错: ' + error.message, 'error');
+                }
+            });
+
+            // 复制按钮事件
+            document.getElementById('copyTitleBtn').addEventListener('click', function () {
+                copyToClipboard('titleResult');
+            });
+
+            document.getElementById('copyContentBtn').addEventListener('click', function () {
+                copyToClipboard('contentResult');
+            });
+
+            // 下载按钮事件
+            document.getElementById('downloadTitleBtn').addEventListener('click', function () {
+                downloadSRT('titleResult', '标题');
+            });
+
+            document.getElementById('downloadContentBtn').addEventListener('click', function () {
+                downloadSRT('contentResult', '文案');
+            });
+        });
 
         // 时间格式化函数
         function formatTime(seconds) {
@@ -331,89 +424,126 @@
             return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(Math.floor(seconds)).padStart(2, '0')},${String(ms).padStart(3, '0')}`;
         }
 
-        // 生成SRT函数
-        function generateSRT() {
-            const text = document.getElementById('textInput').value.trim();
-            if (!text) return alert('请输入字幕内容');
+        // 获取当前时间字符串
+        function getCurrentTime() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hour = String(now.getHours()).padStart(2, '0');
+            const minute = String(now.getMinutes()).padStart(2, '0');
+            const second = String(now.getSeconds()).padStart(2, '0');
+            return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+        }
 
+        // 生成SRT函数
+        function generateSRT(jsonData) {
             const wordDuration = parseFloat(document.getElementById('wordDuration').value);
             const interval = parseFloat(document.getElementById('interval').value);
-            const lines = text.split('\n').filter(line => line.trim() !== '');
 
-            let srt = '';
+            let titleSrt = '';
+            let contentSrt = '';
             let currentTime = 0;
 
-            lines.forEach((line, index) => {
-                const wordCount = line.trim().length;
-                const lineDuration = wordCount * wordDuration;
+            // 跳过标题行，从第1行开始处理
+            for (let i = 1; i < jsonData.length; i++) {
+                const row = jsonData[i];
+                // 确保行有至少两列
+                if (row.length < 2) continue;
+
+                const title = row[0] || '';
+                const content = row[1] || '';
+
+                if (!title.trim() || !content.trim()) continue;
+
+                const contentWordCount = content.length;
+                const lineDuration = contentWordCount * wordDuration;
                 const start = currentTime;
                 const end = currentTime + lineDuration;
 
-                srt += `${index + 1}\n`;
-                srt += `${formatTime(start)} --> ${formatTime(end)}\n`;
-                srt += `${line.trim()}\n\n`;
+                // 生成标题SRT
+                titleSrt += `${i}\n`;
+                titleSrt += `${formatTime(start)} --> ${formatTime(end)}\n`;
+                titleSrt += `${title}\n\n`;
+
+                // 生成文案SRT
+                contentSrt += `${i}\n`;
+                contentSrt += `${formatTime(start)} --> ${formatTime(end)}\n`;
+                contentSrt += `${content}\n\n`;
 
                 currentTime = end + interval;
-            });
-
-            document.getElementById('result').textContent = srt;
-        }
-
-        // 清空文本
-        document.getElementById('clear-btn').addEventListener('click', () => {
-            document.getElementById('textInput').value = '';
-            document.getElementById('result').textContent = '';
-            updateCharCount(); // 清空后更新计数
-        });
-
-        // 生成按钮事件
-        document.getElementById('generate-btn').addEventListener('click', generateSRT);
-
-        // 复制结果
-        document.getElementById('copyBtn').addEventListener('click', () => {
-            const result = document.getElementById('result');
-            const range = document.createRange();
-            range.selectNode(result);
-            window.getSelection().addRange(range);
-            try {
-                const successful = document.execCommand('copy');
-                if (!successful) showToast('复制失败，请手动复制');
-            } finally {
-                window.getSelection().removeAllRanges();
             }
-        });
 
-        // 保存文件
-        document.getElementById('downloadBtn').addEventListener('click', () => {
-            const srtContent = document.getElementById('result').textContent;
-            if (!srtContent) return alert('请先生成字幕');
-
-            const blob = new Blob([srtContent], { type: 'text/plain' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'subtitles.srt';
-            link.style.display = 'none';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        });
-
-        // 初始化字符计数
-        updateCharCount();
-
-        // 更新滑动条的值
-        function updateSlider(inputId, sliderId) {
-            const input = document.getElementById(inputId);
-            const slider = document.getElementById(sliderId);
-            slider.value = input.value;
+            document.getElementById('titleResult').textContent = titleSrt;
+            document.getElementById('contentResult').textContent = contentSrt;
         }
 
-        // 更新输入框的值
-        function updateInput(inputId, sliderId) {
-            const input = document.getElementById(inputId);
-            const slider = document.getElementById(sliderId);
-            // 确保始终显示两位小数
-            input.value = parseFloat(slider.value).toFixed(2);
+        // 复制到剪贴板
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            const text = element.textContent;
+
+            if (!text.trim()) {
+                showToast('没有内容可复制', 'warning');
+                return;
+            }
+
+            navigator.clipboard.writeText(text).then(function () {
+                showToast('内容已复制到剪贴板', 'success');
+            }).catch(function (err) {
+                showToast('复制失败，请手动复制', 'error');
+            });
+        }
+
+        // 下载SRT文件
+        function downloadSRT(elementId, prefix) {
+            const content = document.getElementById(elementId).textContent;
+            if (!content.trim()) {
+                showToast('没有内容可下载', 'warning');
+                return;
+            }
+
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${prefix}-${getCurrentTime()}.srt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showToast(`${prefix}文件已下载`, 'success');
+        }
+
+        // 显示通知提示
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+
+            // 设置提示类型样式
+            toast.className = 'fixed top-4 right-4 max-w-sm bg-white rounded-lg shadow-lg p-4 transform translate-x-full transition-transform duration-300 z-50 border-l-4';
+
+            if (type === 'success') {
+                toast.classList.add('border-green-500');
+            } else if (type === 'error') {
+                toast.classList.add('border-red-500');
+            } else if (type === 'warning') {
+                toast.classList.add('border-yellow-500');
+            } else {
+                toast.classList.add('border-blue-500');
+            }
+
+            // 显示提示
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+            }, 10);
+
+            // 自动隐藏
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+            }, 3000);
         }
     </script>
 </body>
