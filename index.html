@@ -5,6 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>文本转SRT字幕工具</title>
+    <!-- 添加favicon相关标签 -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='65' font-family='Arial' font-size='80' font-weight='bold' fill='#4CAF50'>S</text><text x='30' y='65' font-family='Arial' font-size='40' fill='#4CAF50'>RT</text><rect x='20' y='75' width='60' height='10' rx='5' fill='#007BFF'/></svg>" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><text y='130' font-family='Arial' font-size='140' font-weight='bold' fill='#4CAF50'>S</text><text x='50' y='130' font-family='Arial' font-size='80' fill='#4CAF50'>RT</text><rect x='40' y='150' width='100' height='20' rx='10' fill='#007BFF'/></svg>" type="image/svg+xml">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -67,12 +71,12 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">单字显示时长（秒）</label>
                         <div class="flex items-center space-x-4">
-                            <input type="number" step="0.01" id="wordDuration" value="0.20" min="0.10" max="1.00"
+                            <input type="number" step="0.01" id="wordDuration" value="0.25" min="0.10" max="1.00"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg input-focus focus:border-primary focus:outline-none">
-                            <input type="range" id="wordDurationSlider" min="0.10" max="1.00" step="0.01" value="0.20"
+                            <input type="range" id="wordDurationSlider" min="0.10" max="1.00" step="0.01" value="0.25"
                                 class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
                         </div>
-                        <p class="text-xs text-gray-500 mt-1">控制每个字符的显示时间，默认0.20秒</p>
+                        <p class="text-xs text-gray-500 mt-1">控制每个字符的显示时间，默认0.25秒</p>
                     </div>
 
                     <div>
@@ -151,7 +155,7 @@
         </div>
 
         <!-- 通知提示 -->
-        <div id="toast" class="fixed top-4 right-4 max-w-sm bg-white rounded-lg shadow-lg p-4 transform translate-x-full transition-transform duration-300 z-50 border-l-4 border-primary"></div>
+        <div id="toast" class="fixed top-4 right-4 max-w-sm bg-white rounded-lg shadow-lg p-4 transform translate-x-full transition-all duration-300 z-50 opacity-0"></div>
     </div>
 
     <script>
@@ -161,13 +165,26 @@
 
         // 初始化
         document.addEventListener('DOMContentLoaded', function () {
+            // 获取 localStorage 中的单字显示时长
+            const savedWordDuration = localStorage.getItem('wordDuration');
+            if (savedWordDuration) {
+                const wordDuration = parseFloat(savedWordDuration);
+                document.getElementById('wordDuration').value = wordDuration.toFixed(2);
+                document.getElementById('wordDurationSlider').value = wordDuration.toFixed(2);
+            }
+
             // 初始化滑块和输入框的联动
             document.getElementById('wordDuration').addEventListener('input', function () {
                 document.getElementById('wordDurationSlider').value = this.value;
+                // 保存单字显示时长到 localStorage
+                localStorage.setItem('wordDuration', this.value);
             });
 
             document.getElementById('wordDurationSlider').addEventListener('input', function () {
-                document.getElementById('wordDuration').value = parseFloat(this.value).toFixed(2);
+                const value = parseFloat(this.value).toFixed(2);
+                document.getElementById('wordDuration').value = value;
+                // 保存单字显示时长到 localStorage
+                localStorage.setItem('wordDuration', value);
             });
 
             document.getElementById('interval').addEventListener('input', function () {
@@ -351,7 +368,7 @@
             showToast(`${prefix}文件已下载`, 'success');
         }
 
-        // 显示通知提示 - 修复弹窗不消失的问题
+        // 显示通知提示 - 修复弹窗不消失的问题，并缩短显示时间
         function showToast(message, type = 'info') {
             const toast = document.getElementById('toast');
             toast.textContent = message;
@@ -362,7 +379,7 @@
             }
 
             // 设置提示类型样式
-            toast.className = 'fixed top-4 right-4 max-w-sm bg-white rounded-lg shadow-lg p-4 transform translate-x-full transition-transform duration-300 z-50 border-l-4';
+            toast.className = 'fixed top-4 right-4 max-w-sm bg-white rounded-lg shadow-lg p-4 transform translate-x-full transition-all duration-300 z-50 opacity-0';
 
             if (type === 'success') {
                 toast.classList.add('border-green-500');
@@ -376,13 +393,13 @@
 
             // 显示提示
             setTimeout(() => {
-                toast.classList.remove('translate-x-full');
+                toast.classList.remove('translate-x-full', 'opacity-0');
             }, 10);
 
-            // 自动隐藏
+            // 自动隐藏 - 缩短为2秒
             toastTimeout = setTimeout(() => {
-                toast.classList.add('translate-x-full');
-            }, 3000);
+                toast.classList.add('translate-x-full', 'opacity-0');
+            }, 2000);
         }
     </script>
 </body>
