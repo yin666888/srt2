@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Excel转SRT字幕工具</title>
+    <title>文本转SRT字幕工具</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -52,16 +52,18 @@
 </head>
 
 <body class="bg-gray-50 min-h-screen font-inter">
-    <div class="container mx-auto px-4 py-8 max-w-6xl h-full">
-        <h1 class="text-[clamp(1.75rem,4vw,2.5rem)] font-bold text-center text-dark mb-8">Excel转SRT字幕工具</h1>
+    <div class="container mx-auto px-4 py-8 max-w-7xl min-h-[95vh] flex flex-col">
+        <h1 class="text-[clamp(1.75rem,4vw,2.5rem)] font-bold text-center text-dark mb-6">文本转SRT字幕工具</h1>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 h-full">
-            <!-- 参数设置模块 -->
-            <div class="bg-white rounded-xl p-6 module-shadow border border-gray-100 transition-all duration-300 hover:module-shadow/70 h-full flex flex-col">
+        <!-- 三模块横向排列 -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-grow">
+            <!-- 参数设置与文本输入模块 -->
+            <div class="bg-white rounded-xl p-6 module-shadow border border-gray-100 transition-all duration-300 hover:module-shadow/70 flex flex-col">
                 <h3 class="text-xl font-semibold text-dark mb-4 flex items-center">
-                    <i class="fa fa-sliders text-primary mr-2"></i>参数设置
+                    <i class="fa fa-pencil text-primary mr-2"></i>参数设置与粘贴文本内容
                 </h3>
-                <div class="space-y-6 flex-grow">
+
+                <div class="space-y-6 flex-grow flex flex-col">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">单字显示时长（秒）</label>
                         <div class="flex items-center space-x-4">
@@ -83,74 +85,31 @@
                         </div>
                         <p class="text-xs text-gray-500 mt-1">设置句子之间的间隔时间，默认1.00秒</p>
                     </div>
-                </div>
-            </div>
 
-            <!-- Excel上传模块 -->
-            <div class="bg-white rounded-xl p-6 module-shadow border border-gray-100 transition-all duration-300 hover:module-shadow/70 h-full flex flex-col">
-                <h3 class="text-xl font-semibold text-dark mb-4 flex items-center">
-                    <i class="fa fa-file-excel-o text-primary mr-2"></i>上传Excel文件
-                </h3>
-
-                <div class="space-y-6 flex-grow">
-                    <div id="dropZone" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-primary transition-colors duration-300">
-                        <i class="fa fa-cloud-upload text-4xl text-gray-400 mb-3"></i>
-                        <p class="text-gray-600 mb-2">拖放Excel文件到此处，或</p>
-                        <button id="selectFileBtn" class="inline-flex items-center px-4 py-2 border border-primary text-primary rounded-lg btn-hover">
-                            <i class="fa fa-folder-open-o mr-2"></i>选择文件
-                        </button>
-                        <input type="file" id="fileInput" accept=".xlsx,.xls" class="hidden">
-                        <p class="text-xs text-gray-500 mt-3">支持 .xlsx 和 .xls 格式，第一列为标题，第二列为文案</p>
-                    </div>
-
-                    <div id="fileInfo" class="hidden bg-gray-50 p-4 rounded-lg border border-gray-200">
-                        <h4 class="font-medium text-gray-800 mb-2">已选择文件: <span id="fileName" class="text-primary"></span></h4>
-                        <div class="flex space-x-3 mt-3">
-                            <button id="processBtn" class="flex-1 bg-primary text-white rounded-lg px-4 py-2 btn-hover">
-                                <i class="fa fa-cog mr-2"></i>处理文件
+                    <!-- 调整后的文本输入框 -->
+                    <div class="flex-grow flex flex-col">
+                        <textarea id="textInput" class="flex-grow w-full p-4 border border-gray-300 rounded-lg input-focus focus:border-primary focus:outline-none resize-none"
+                            placeholder="标题1	文案1&#10;标题2	文案2&#10;标题3	文案3"></textarea>
+                        <!-- 按钮置底对齐 -->
+                        <div class="flex space-x-3 mt-4 pt-4 border-t border-gray-100">
+                            <button id="clearTextBtn" class="flex-1 bg-gray-200 text-gray-700 rounded-lg px-4 py-2 btn-hover">
+                                <i class="fa fa-eraser mr-2"></i>清空
                             </button>
-                            <button id="changeFileBtn" class="flex-1 bg-gray-200 text-gray-700 rounded-lg px-4 py-2 btn-hover">
-                                <i class="fa fa-refresh mr-2"></i>更换文件
+                            <button id="processTextBtn" class="flex-1 bg-primary text-white rounded-lg px-4 py-2 btn-hover">
+                                <i class="fa fa-cog mr-2"></i>处理文本
                             </button>
                         </div>
                     </div>
-
-                    <div id="loadingIndicator" class="hidden text-center py-4">
-                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                        <p class="text-gray-600 mt-2">正在处理文件...</p>
-                    </div>
                 </div>
             </div>
 
-            <!-- 文本输入模块 -->
-            <div class="bg-white rounded-xl p-6 module-shadow border border-gray-100 transition-all duration-300 hover:module-shadow/70 h-full flex flex-col">
+            <!-- 标题SRT结果模块 -->
+            <div class="bg-white rounded-xl p-6 module-shadow border border-gray-100 transition-all duration-300 hover:module-shadow/70 flex flex-col">
                 <h3 class="text-xl font-semibold text-dark mb-4 flex items-center">
-                    <i class="fa fa-pencil text-primary mr-2"></i>粘贴文本内容
+                    <i class="fa fa-file-text-o text-primary mr-2"></i>标题SRT结果
                 </h3>
 
-                <div class="flex flex-col flex-grow">
-                    <textarea id="textInput" class="flex-grow w-full p-4 border border-gray-300 rounded-lg input-focus focus:border-primary focus:outline-none resize-none"
-                        placeholder="标题1	文案1&#10;标题2	文案2&#10;标题3	文案3"></textarea>
-                    <div class="flex space-x-3 mt-6">
-                        <button id="clearTextBtn" class="flex-1 bg-gray-200 text-gray-700 rounded-lg px-4 py-2 btn-hover">
-                            <i class="fa fa-eraser mr-2"></i>清空
-                        </button>
-                        <button id="processTextBtn" class="flex-1 bg-primary text-white rounded-lg px-4 py-2 btn-hover">
-                            <i class="fa fa-cog mr-2"></i>处理文本
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 结果预览模块 -->
-        <div class="md:col-span-3 bg-white rounded-xl p-6 module-shadow border border-gray-100 transition-all duration-300 hover:module-shadow/70 mt-6">
-            <h3 class="text-xl font-semibold text-dark mb-4 flex items-center">
-                <i class="fa fa-file-text-o text-primary mr-2"></i>生成结果
-            </h3>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
+                <div class="flex-grow flex flex-col">
                     <div class="flex justify-between items-center mb-3">
                         <h4 class="font-medium text-gray-800">标题SRT</h4>
                         <div class="flex space-x-2">
@@ -162,10 +121,18 @@
                             </button>
                         </div>
                     </div>
-                    <pre id="titleResult" class="bg-gray-50 border border-gray-200 rounded-lg p-4 h-80 overflow-auto text-sm font-mono"></pre>
+                    <!-- 拉高的结果框 -->
+                    <pre id="titleResult" class="bg-gray-50 border border-gray-200 rounded-lg p-4 flex-grow overflow-auto text-sm font-mono"></pre>
                 </div>
+            </div>
 
-                <div>
+            <!-- 文案SRT结果模块 -->
+            <div class="bg-white rounded-xl p-6 module-shadow border border-gray-100 transition-all duration-300 hover:module-shadow/70 flex flex-col">
+                <h3 class="text-xl font-semibold text-dark mb-4 flex items-center">
+                    <i class="fa fa-file-text-o text-primary mr-2"></i>文案SRT结果
+                </h3>
+
+                <div class="flex-grow flex flex-col">
                     <div class="flex justify-between items-center mb-3">
                         <h4 class="font-medium text-gray-800">文案SRT</h4>
                         <div class="flex space-x-2">
@@ -177,7 +144,8 @@
                             </button>
                         </div>
                     </div>
-                    <pre id="contentResult" class="bg-gray-50 border border-gray-200 rounded-lg p-4 h-80 overflow-auto text-sm font-mono"></pre>
+                    <!-- 拉高的结果框 -->
+                    <pre id="contentResult" class="bg-gray-50 border border-gray-200 rounded-lg p-4 flex-grow overflow-auto text-sm font-mono"></pre>
                 </div>
             </div>
         </div>
@@ -189,6 +157,7 @@
     <script>
         // 全局变量存储当前处理的Excel数据
         let excelData = null;
+        let toastTimeout = null;
 
         // 初始化
         document.addEventListener('DOMContentLoaded', function () {
@@ -207,141 +176,6 @@
 
             document.getElementById('intervalSlider').addEventListener('input', function () {
                 document.getElementById('interval').value = parseFloat(this.value).toFixed(2);
-            });
-
-            // 文件选择按钮点击事件
-            document.getElementById('selectFileBtn').addEventListener('click', function () {
-                document.getElementById('fileInput').click();
-            });
-
-            // 文件选择后处理
-            document.getElementById('fileInput').addEventListener('change', handleFileSelect);
-
-            // 拖放区域事件
-            const dropZone = document.getElementById('dropZone');
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                dropZone.addEventListener(eventName, preventDefaults, false);
-            });
-
-            function preventDefaults(e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-
-            ['dragenter', 'dragover'].forEach(eventName => {
-                dropZone.addEventListener(eventName, highlight, false);
-            });
-
-            ['dragleave', 'drop'].forEach(eventName => {
-                dropZone.addEventListener(eventName, unhighlight, false);
-            });
-
-            function highlight() {
-                dropZone.classList.add('border-primary');
-                dropZone.classList.add('bg-primary/5');
-            }
-
-            function unhighlight() {
-                dropZone.classList.remove('border-primary');
-                dropZone.classList.remove('bg-primary/5');
-            }
-
-            dropZone.addEventListener('drop', handleDrop, false);
-
-            function handleDrop(e) {
-                const dt = e.dataTransfer;
-                const files = dt.files;
-
-                if (files.length) {
-                    handleFile(files[0]);
-                }
-            }
-
-            // 处理文件选择
-            function handleFileSelect(e) {
-                const file = e.target.files[0];
-                if (file) {
-                    handleFile(file);
-                }
-            }
-
-            // 处理文件
-            function handleFile(file) {
-                // 检查文件类型
-                const fileType = file.name.split('.').pop().toLowerCase();
-                if (fileType !== 'xlsx' && fileType !== 'xls') {
-                    showToast('请上传Excel文件 (.xlsx 或 .xls)', 'error');
-                    return;
-                }
-
-                // 显示文件信息
-                document.getElementById('fileName').textContent = file.name;
-                document.getElementById('dropZone').classList.add('hidden');
-                document.getElementById('fileInfo').classList.remove('hidden');
-
-                // 存储文件信息
-                excelData = file;
-            }
-
-            // 更换文件按钮
-            document.getElementById('changeFileBtn').addEventListener('click', function () {
-                document.getElementById('fileInput').value = '';
-                document.getElementById('fileInfo').classList.add('hidden');
-                document.getElementById('dropZone').classList.remove('hidden');
-                document.getElementById('titleResult').textContent = '';
-                document.getElementById('contentResult').textContent = '';
-                excelData = null;
-            });
-
-            // 处理文件按钮
-            document.getElementById('processBtn').addEventListener('click', function () {
-                if (!excelData) {
-                    showToast('请先选择Excel文件', 'error');
-                    return;
-                }
-
-                document.getElementById('loadingIndicator').classList.remove('hidden');
-                document.getElementById('fileInfo').classList.add('hidden');
-
-                const reader = new FileReader();
-
-                reader.onload = function (e) {
-                    try {
-                        const data = new Uint8Array(e.target.result);
-                        const workbook = XLSX.read(data, { type: 'array' });
-
-                        // 获取第一个工作表
-                        const firstSheetName = workbook.SheetNames[0];
-                        const worksheet = workbook.Sheets[firstSheetName];
-
-                        // 转换为JSON
-                        const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-                        // 检查数据格式
-                        if (jsonData.length < 2) {
-                            throw new Error('Excel文件中至少需要有一行标题和一行内容');
-                        }
-
-                        // 生成SRT
-                        generateSRT(jsonData);
-
-                        document.getElementById('loadingIndicator').classList.add('hidden');
-                        document.getElementById('fileInfo').classList.remove('hidden');
-                        showToast('文件处理成功', 'success');
-                    } catch (error) {
-                        document.getElementById('loadingIndicator').classList.add('hidden');
-                        document.getElementById('fileInfo').classList.remove('hidden');
-                        showToast('处理文件时出错: ' + error.message, 'error');
-                    }
-                };
-
-                reader.onerror = function () {
-                    document.getElementById('loadingIndicator').classList.add('hidden');
-                    document.getElementById('fileInfo').classList.remove('hidden');
-                    showToast('读取文件时出错', 'error');
-                };
-
-                reader.readAsArrayBuffer(excelData);
             });
 
             // 清空文本按钮
@@ -433,7 +267,7 @@
             const hour = String(now.getHours()).padStart(2, '0');
             const minute = String(now.getMinutes()).padStart(2, '0');
             const second = String(now.getSeconds()).padStart(2, '0');
-            return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+            return `${year}-${month}-${day} ${hour}${minute}${second}`;
         }
 
         // 生成SRT函数
@@ -517,10 +351,15 @@
             showToast(`${prefix}文件已下载`, 'success');
         }
 
-        // 显示通知提示
+        // 显示通知提示 - 修复弹窗不消失的问题
         function showToast(message, type = 'info') {
             const toast = document.getElementById('toast');
             toast.textContent = message;
+
+            // 清除之前的定时器
+            if (toastTimeout) {
+                clearTimeout(toastTimeout);
+            }
 
             // 设置提示类型样式
             toast.className = 'fixed top-4 right-4 max-w-sm bg-white rounded-lg shadow-lg p-4 transform translate-x-full transition-transform duration-300 z-50 border-l-4';
@@ -541,7 +380,7 @@
             }, 10);
 
             // 自动隐藏
-            setTimeout(() => {
+            toastTimeout = setTimeout(() => {
                 toast.classList.add('translate-x-full');
             }, 3000);
         }
